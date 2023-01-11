@@ -1,6 +1,10 @@
 locals {
   aws_region = var.aws_region
   hvn_region = var.aws_region
+  consul_config = file("${path.module}/${var.consul_config_file_path}")
+  consul_ca = file("${path.module}/${var.consul_ca_file_path}")
+  consul_acl_token = var.hcp_consul_root_token
+  consul_version = var.consul_version
 }
 
 provider "aws" {
@@ -13,18 +17,6 @@ data "aws_vpc" "selected" {
 
 data "aws_subnet" "selected" {
   id = var.subnet_id
-}
-
-data "hcp_hvn" "selected" {
-  hvn_id = data.hcp_consul_cluster.selected.hvn_id
-}
-
-data "hcp_consul_cluster" "selected" {
-  cluster_id = var.cluster_id
-}
-
-resource "hcp_consul_cluster_root_token" "token" {
-  cluster_id = data.hcp_consul_cluster.selected.id
 }
 
 // EC2 instance
@@ -98,10 +90,10 @@ resource "aws_instance" "consul_client" {
 
   user_data = templatefile("${path.module}/scripts/user_data.sh", {
     setup = base64gzip(templatefile("${path.module}/scripts/setup.sh", {
-      consul_ca        = data.hcp_consul_cluster.selected.consul_ca_file,
-      consul_config    = data.hcp_consul_cluster.selected.consul_config_file,
-      consul_acl_token = hcp_consul_cluster_root_token.token.secret_id,
-      consul_version   = data.hcp_consul_cluster.selected.consul_version,
+      consul_ca        = base64encode(local.consul_ca),
+      consul_config    = base64encode(local.consul_config),
+      consul_acl_token = local.consul_acl_token,
+      consul_version   = local.consul_version,
       consul_service = base64encode(templatefile("${path.module}/scripts/service", {
         service_name = "consul",
         service_cmd  = "/usr/bin/consul agent -data-dir /var/consul -config-dir=/etc/consul.d/",

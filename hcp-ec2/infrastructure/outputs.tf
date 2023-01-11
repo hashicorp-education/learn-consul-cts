@@ -28,7 +28,7 @@ output "hcp_consul_cluster_id" {
   description = "HCP Consul ID"
 }
 
-output "hcp_consul_security_group" {
+output "hcp_consul_security_group_id" {
   value       = module.aws_hcp_consul.security_group_id
   description = "AWS Security group for HCP Consul"
 }

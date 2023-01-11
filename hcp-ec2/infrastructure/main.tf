@@ -75,6 +75,7 @@ resource "hcp_consul_cluster" "main" {
   hvn_id          = hcp_hvn.main.hvn_id
   public_endpoint = true
   tier            = "development"
+  min_consul_version = "1.12.0"
 }
 
 resource "local_file" "hcp_consul_config" {
