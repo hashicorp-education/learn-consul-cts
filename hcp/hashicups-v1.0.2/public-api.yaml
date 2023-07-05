@@ -48,7 +48,7 @@ spec:
       serviceAccountName: public-api
       containers:
         - name: public-api
-          image: hashicorpdemoapp/public-api:v0.0.6
+          image: hashicorpdemoapp/public-api:v0.0.7
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
