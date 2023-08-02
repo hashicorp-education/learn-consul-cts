@@ -1,0 +1,25 @@
+{
+    "acl": {
+        "enabled": true,
+        "down_policy": "async-cache",
+        "default_policy": "deny"
+    },
+    "datacenter": "${datacenter}",
+    "encrypt": "",
+    "encrypt_verify_incoming": false,
+    "encrypt_verify_outgoing": false,
+    "server": false,
+    "log_level": "INFO",
+    "ui_config": {
+        "enabled": true
+    },
+    "auto_encrypt": {
+        "tls": true
+    },
+    "tls": {
+        "defaults": {
+            "ca_file": "./ca.pem",
+            "verify_outgoing": true
+        }
+    }
+}

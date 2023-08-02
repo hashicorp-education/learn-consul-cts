@@ -67,7 +67,7 @@ spec:
                 path: conf.json
       containers:
         - name: products-api
-          image: hashicorpdemoapp/product-api:v0.0.22
+          image: hashicorpdemoapp/product-api:v0.0.21
           imagePullPolicy: Always
           ports:
             - containerPort: 9090
@@ -77,7 +77,7 @@ spec:
               value: "/config/conf.json"
           livenessProbe:
             httpGet:
-              path: /health/livez
+              path: /health
               port: 9090
             initialDelaySeconds: 15
             timeoutSeconds: 1
