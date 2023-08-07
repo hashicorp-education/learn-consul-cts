@@ -108,14 +108,14 @@ resource "aws_iam_role" "role_manage_instances" {
   })
 }
 
-resource "aws_iam_policy_attachment" "policy_attachment_instances" {
-  name       = "policy_attachment_instances"
+resource "aws_iam_policy_attachment" "policy_manage_instances" {
+  name       = "policy_manage_instances"
   roles      = [aws_iam_role.role_manage_instances.name]
   policy_arn = aws_iam_policy.policy_manage_instances.arn
 }
 
-resource "aws_iam_instance_profile" "profile_instances" {
-  name = "profile_instances"
+resource "aws_iam_instance_profile" "profile_manage_instances" {
+  name = "profile_manage_instances"
   role = aws_iam_role.role_manage_instances.name
 }
 
@@ -124,7 +124,7 @@ resource "aws_instance" "cts" {
   count                       = 1
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t3.micro"
-  iam_instance_profile        = aws_iam_instance_profile.profile_instances.name
+  iam_instance_profile        = aws_iam_instance_profile.profile_manage_instances.name
   associate_public_ip_address = true
   subnet_id                   = module.vpc.public_subnets[0]
   vpc_security_group_ids = [
@@ -170,5 +170,6 @@ resource "aws_instance" "cts" {
 
   tags = {
     Name = "cts-${count.index}"
+    learn-consul-cts-intro = "join"
   }
 }
