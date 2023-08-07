@@ -2,7 +2,7 @@
 set -ex
 
 start_service() {
-  mv $1.service /usr/lib/systemd/system/
+  # mv $1.service /usr/lib/systemd/system/
   systemctl enable $1.service
   systemctl start $1.service
 }
@@ -11,19 +11,19 @@ setup_deps() {
   add-apt-repository universe -y
   curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
   apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
-  curl -sL 'https://deb.dl.getenvoy.io/public/gpg.8115BA8E629CC074.key' | gpg --dearmor -o /usr/share/keyrings/getenvoy-keyring.gpg
-  echo "deb [arch=amd64 signed-by=/usr/share/keyrings/getenvoy-keyring.gpg] https://deb.dl.getenvoy.io/public/deb/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/getenvoy.list
+  # curl -sL 'https://deb.dl.getenvoy.io/public/gpg.8115BA8E629CC074.key' | gpg --dearmor -o /usr/share/keyrings/getenvoy-keyring.gpg
+  # echo "deb [arch=amd64 signed-by=/usr/share/keyrings/getenvoy-keyring.gpg] https://deb.dl.getenvoy.io/public/deb/ubuntu $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/getenvoy.list
   apt update -qy
   version="${consul_version}"
   consul_package="consul="$${version:1}"*"
   cts_package="consul-terraform-sync="$${cts_version:1}"*"
-  apt install -qy apt-transport-https gnupg2 curl lsb-release nomad $${consul_package} $${cts_package} getenvoy-envoy unzip jq tree apache2-utils nginx
+  apt install -qy apt-transport-https gnupg2 curl lsb-release $${consul_package} $${cts_package} unzip jq tree apache2-utils nginx awscli
 
-  curl -fsSL https://get.docker.com -o get-docker.sh
-  sh ./get-docker.sh
-  curl https://func-e.io/install.sh | bash -s -- -b /usr/local/bin
-  func-e use 1.20.1
-  cp ~/.func-e/versions/1.20.1/bin/envoy /usr/local/bin/
+  # curl -fsSL https://get.docker.com -o get-docker.sh
+  # sh ./get-docker.sh
+  # curl https://func-e.io/install.sh | bash -s -- -b /usr/local/bin
+  # func-e use 1.20.1
+  # cp ~/.func-e/versions/1.20.1/bin/envoy /usr/local/bin/
 }
 
 setup_networking() {
@@ -36,30 +36,31 @@ setup_networking() {
 }
 
 setup_consul() {
-  mkdir --parents /etc/consul.d /var/consul
-  chown --recursive consul:consul /etc/consul.d
-  chown --recursive consul:consul /var/consul
+  #mkdir --parents /etc/consul.d /var/consul
+  #chown --recursive consul:consul /etc/consul.d
+  #chown --recursive consul:consul /var/consul
 
   echo "${consul_ca}" | base64 -d >/etc/consul.d/ca.pem
   echo "${consul_config}" | base64 -d >client.temp.1
   ip=$(hostname -I | awk '{print $1}')
-  jq --arg token "${consul_acl_token}" '.acl += {"tokens":{"agent":"\($token)"}}' client.temp.1 >client.temp.2
+  jq --arg token "${consul_acl_token}" '.acl += {"tokens":{"agent":"\($token)","default":"\($token)","initial_management":"\($token)"}}' client.temp.1 >client.temp.2
   jq '.ports = {"grpc":8502}' client.temp.2 >client.temp.3
   jq '.tls.defaults.ca_file = "/etc/consul.d/ca.pem"' client.temp.3 >client.temp.4
   jq '.bind_addr = "{{ GetPrivateInterfaces | include \"network\" \"'${vpc_cidr}'\" | attr \"address\" }}"' client.temp.4 >/etc/consul.d/client.json
 }
 
-setup_services() {
-  curl -L -o counting-service.zip https://github.com/hashicorp/demo-consul-101/releases/download/v0.0.5/counting-service_linux_amd64.zip
-  curl -L -o dashboard-service.zip https://github.com/hashicorp/demo-consul-101/releases/download/v0.0.5/dashboard-service_linux_amd64.zip
-  sudo unzip counting-service.zip -d /usr/local/bin
-  sudo unzip dashboard-service.zip -d /usr/local/bin
-  rm counting-service.zip dashboard-service.zip
-}
+# setup_services() {
+#   curl -L -o counting-service.zip https://github.com/hashicorp/demo-consul-101/releases/download/v0.0.5/counting-service_linux_amd64.zip
+#   curl -L -o dashboard-service.zip https://github.com/hashicorp/demo-consul-101/releases/download/v0.0.5/dashboard-service_linux_amd64.zip
+#   sudo unzip counting-service.zip -d /usr/local/bin
+#   sudo unzip dashboard-service.zip -d /usr/local/bin
+#   rm counting-service.zip dashboard-service.zip
+# }
 
 cd /home/ubuntu/
 
 echo "${consul_service}" | base64 -d >consul.service
+[[ ! -z "${cts_config}" ]] && echo "${cts_config}" | base64 -d >cts/cts-config.hcl
 
 setup_networking
 setup_deps
@@ -69,8 +70,8 @@ setup_consul
 start_service "consul"
 
 # nomad and consul service is type simple and might not be up and running just yet.
-sleep 10
+# sleep 10
 
-setup_services
+# setup_services
 
 echo "done"

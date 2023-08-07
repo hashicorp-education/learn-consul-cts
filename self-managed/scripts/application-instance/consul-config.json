@@ -8,18 +8,16 @@
     "encrypt": "",
     "encrypt_verify_incoming": false,
     "encrypt_verify_outgoing": false,
-    "server": false,
+    "server": true,
+    "bootstrap": true,
     "log_level": "INFO",
     "ui_config": {
         "enabled": true
     },
-    "auto_encrypt": {
-        "tls": true
-    },
     "tls": {
         "defaults": {
-            "ca_file": "./ca.pem",
-            "verify_outgoing": true
+            "ca_file": "/etc/consul.d/ca.pem",
+            "verify_outgoing": false
         }
     }
 }

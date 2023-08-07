@@ -1,9 +1,3 @@
-output "kubernetes_cluster_endpoint" {
-  value = data.aws_eks_cluster.cluster.endpoint
-}
-
-# original outputs
-
 output "vpc_id" {
   value       = module.vpc.vpc_id
   description = "AWS VPC ID"
@@ -19,34 +13,9 @@ output "vpc_public_subnets" {
   description = "AWS public subnet"
 }
 
-output "vpc_cluster_id" {
-  description = "EKS cluster ID"
-  value       = module.eks.cluster_id
-}
-
 output "subnet_id" {
   value       = module.vpc.public_subnets[0]
   description = "AWS public subnet"
-}
-
-output "hcp_consul_security_group_id" {
-  value       = module.eks.cluster_primary_security_group_id
-  description = "AWS Security group for HCP Consul"
-}
-
-output "cluster_id" {
-  description = "EKS cluster ID."
-  value       = module.eks.cluster_id
-}
-
-output "cluster_endpoint" {
-  description = "Endpoint for EKS control plane."
-  value       = module.eks.cluster_endpoint
-}
-
-output "cluster_security_group_id" {
-  description = "Security group ids attached to the cluster control plane."
-  value       = module.eks.cluster_security_group_id
 }
 
 output "region" {
@@ -54,14 +23,19 @@ output "region" {
   value       = var.aws_region
 }
 
-output "cluster_name" {
-  description = "Kubernetes Cluster Name"
-  value       = local.cluster_id
+output "cts_instance" {
+  value       = aws_instance.cts[0].public_ip
+  description = "CTS instance public IP"
 }
 
-output "ec2_client" {
-  value       = aws_instance.consul_client[0].public_ip
-  description = "EC2 public IP"
+output "app_instance_public_ip" {
+  value       = aws_instance.application[0].public_ip
+  description = "App instance public IP"
+  }
+
+output "app_instance_private_ip" {
+  value       = aws_instance.application[0].private_ip
+  description = "App instance private IP"
 }
 
 output "consul_token" {
@@ -69,3 +43,7 @@ output "consul_token" {
   value = random_uuid.consul_bootstrap_token.result
   description = "Consul bootstrap token"
 }
+
+#output "cts_via_jumphost" {
+#  value = "ssh -i ${local_file.key_instances_key.filename} -J ubuntu@${aws_instance.jumphost[0].public_ip} ubuntu@${aws_instance.cts[0].private_ip}"
+#}
