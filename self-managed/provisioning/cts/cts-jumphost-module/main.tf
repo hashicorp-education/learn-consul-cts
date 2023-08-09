@@ -54,7 +54,7 @@ resource "aws_security_group" "secgrp-jumphost" {
 
   tags = {
     Name       = "sg-jumphost"
-    CtsCleanup = "true"
+    CtsJumphostModule = "true"
   }
 }
 
@@ -91,7 +91,7 @@ resource "aws_key_pair" "jumphost-key" {
   public_key = tls_private_key.pk.public_key_openssh
   tags = {
     Name       = "kp-jumphost"
-    CtsCleanup = "true"
+    CtsJumphostModule = "true"
   }
 }
 
@@ -115,6 +115,6 @@ resource "aws_instance" "jumphost" {
 
   tags = {
     Name       = "jumphost-${count.index}"
-    CtsCleanup = "true"
+    CtsJumphostModule = "true"
   }
 }

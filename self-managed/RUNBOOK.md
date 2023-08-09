@@ -26,14 +26,14 @@ This output means that the CTS deployment has ran successfully.
 Verify that the EC2 jumphost instance with the related tag is currently running:
 
 ```
-$ aws --region eu-north-1  ec2 describe-instances --filters "Name=tag-key,Values=CtsCleanup" | jq '.Reservations[].Instances[].State.Name'
+$ aws --region eu-north-1  ec2 describe-instances --filters "Name=tag-key,Values=CtsJumphostModule" | jq '.Reservations[].Instances[].State.Name'
 "running"
 ```
 
 Verify the current ruleset consists only of one rule for the current one deployed application instance:
 
 ```
-$ aws --region eu-north-1 ec2 describe-security-groups --filters "Name=tag-key,Values=CtsCleanup" | jq -r '.SecurityGroups[].IpPermissionsEgress'
+$ aws --region eu-north-1 ec2 describe-security-groups --filters "Name=tag-key,Values=CtsJumphostModule" | jq -r '.SecurityGroups[].IpPermissionsEgress'
 [
   {
     "FromPort": 22,
@@ -76,7 +76,7 @@ Observe the output in the `consul-terraform-sync` session in the running CTS ins
 Verify the current ruleset consists of two rules for the current deployed application instances:
 
 ```
-$ aws --region eu-north-1 ec2 describe-security-groups --filters "Name=tag-key,Values=CtsCleanup" | jq -r '.SecurityGroups[].IpPermissionsEgress'
+$ aws --region eu-north-1 ec2 describe-security-groups --filters "Name=tag-key,Values=CtsJumphostModule" | jq -r '.SecurityGroups[].IpPermissionsEgress'
 [
   {
     "FromPort": 22,
@@ -100,7 +100,7 @@ $ aws --region eu-north-1 ec2 describe-security-groups --filters "Name=tag-key,V
 Clean-up the infrastructure deployed from the CTS module. Stop the jumphost instance:
 
 ```
-$ aws --region eu-north-1 ec2 terminate-instances --instance-ids $(aws --region eu-north-1 ec2 describe-instances --filters "Name=tag-key,Values=CtsCleanup" | jq -r '.Reservations[].Instances[].InstanceId')
+$ aws --region eu-north-1 ec2 terminate-instances --instance-ids $(aws --region eu-north-1 ec2 describe-instances --filters "Name=tag-key,Values=CtsJumphostModule" | jq -r '.Reservations[].Instances[].InstanceId')
 {
     "TerminatingInstances": [
         {
@@ -121,14 +121,14 @@ $ aws --region eu-north-1 ec2 terminate-instances --instance-ids $(aws --region 
 Delete the jumphost instance's key-pair. Notice the lack of output means success:
 
 ```
-$ aws --region eu-north-1 ec2 delete-key-pair --key-pair-id $(aws --region eu-north-1 ec2 describe-key-pairs --filters "Name=tag-key,Values=CtsCleanup" | jq -r '.KeyPairs[].KeyPairId')
+$ aws --region eu-north-1 ec2 delete-key-pair --key-pair-id $(aws --region eu-north-1 ec2 describe-key-pairs --filters "Name=tag-key,Values=CtsJumphostModule" | jq -r '.KeyPairs[].KeyPairId')
 
 ```
 
 Delete the jumphost instance's security group. Notice the lack of output means success:
 
 ```
-$ aws --region eu-north-1 ec2 delete-security-group --group-id $(aws --region eu-north-1 ec2 describe-security-groups --filters "Name=tag-key,Values=CtsCleanup" | jq -r '.SecurityGroups[].GroupId')
+$ aws --region eu-north-1 ec2 delete-security-group --group-id $(aws --region eu-north-1 ec2 describe-security-groups --filters "Name=tag-key,Values=CtsJumphostModule" | jq -r '.SecurityGroups[].GroupId')
 
 ```
 
