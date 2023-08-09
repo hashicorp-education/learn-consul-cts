@@ -4,15 +4,17 @@
         "down_policy": "async-cache",
         "default_policy": "deny",
         "tokens": {
-            "default": "${consul_default_token}"
+            "agent": "${token}",
+            "default": "${token}",
+            "initial_management": "${token}"
         }
     },
     "datacenter": "${datacenter}",
-    "retry_join": ["${retry_join}"],
     "encrypt": "",
     "encrypt_verify_incoming": false,
     "encrypt_verify_outgoing": false,
-    "server": false,
+    "server": true,
+    "bootstrap": true,
     "log_level": "INFO",
     "ui_config": {
         "enabled": true
@@ -23,15 +25,7 @@
             "verify_outgoing": false
         }
     },
-    "service": {
-        "name": "nginx",
-        "port": 80,
-        "check": {
-            "id": "nginx",
-            "name": "NGINX TCP on port 80",
-            "tcp": "localhost:80",
-            "interval": "10s",
-            "timeout": "1s"
-        }
+    "ports": {
+        "grpc": 8502
     }
 }

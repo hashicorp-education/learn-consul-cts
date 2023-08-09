@@ -12,7 +12,6 @@ resource "aws_iam_policy" "policy_describe_instances" {
         }
       ]
     }
-
   )
 }
 
@@ -53,31 +52,25 @@ resource "aws_instance" "application" {
   iam_instance_profile        = aws_iam_instance_profile.profile_describe_instances.name
   associate_public_ip_address = true
   subnet_id                   = module.vpc.private_subnets[0]
-  vpc_security_group_ids = [
-    aws_security_group.allow_ssh.id
-  ]
-  key_name = aws_key_pair.key-instances.key_name
+  vpc_security_group_ids      = [aws_security_group.allow_ssh.id]
+  key_name                    = aws_key_pair.key-instances.key_name
 
-  user_data = templatefile("${path.module}/scripts/application-instance/user_data.sh", {
-    setup = base64gzip(templatefile("${path.module}/scripts/application-instance/setup.sh", {
+  user_data = templatefile("${path.module}/provisioning/user_data.sh", {
+    setup = base64gzip(templatefile("${path.module}/provisioning/setup.sh", {
+      cts_config = "",
       consul_ca = base64encode(tls_self_signed_cert.consul_ca_cert.cert_pem),
-      consul_config = base64encode(templatefile("${path.module}/scripts/application-instance/consul-client.json", {
+      consul_config = base64encode(templatefile("${path.module}/provisioning/consul-client.json", {
         datacenter           = var.datacenter,
         retry_join           = "provider=aws tag_key=learn-consul-cts-intro tag_value=join",
-        consul_default_token = random_uuid.consul_bootstrap_token.result
+        token = random_uuid.consul_bootstrap_token.result
       })),
-      consul_acl_token = random_uuid.consul_bootstrap_token.result,
       consul_version   = var.consul_version,
-      consul_service = base64encode(templatefile("${path.module}/scripts/application-instance/service", {
-        service_name = "consul",
-        service_cmd  = "/usr/bin/consul agent -data-dir /var/consul -config-dir=/etc/consul.d/",
-      })),
       vpc_cidr = module.vpc.vpc_cidr_block,
     })),
   })
 
   tags = {
-    Name = "application-${count.index}"
+    Name                   = "application-${count.index}"
     learn-consul-cts-intro = "join"
   }
 }

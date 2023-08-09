@@ -4,10 +4,6 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 3.43"
     }
-    consul = {
-      source  = "hashicorp/consul"
-      version = "~> 2.17"
-    }
     random = {
       source  = "hashicorp/random"
       version = ">= 2"

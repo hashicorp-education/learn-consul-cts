@@ -4,7 +4,8 @@
         "down_policy": "async-cache",
         "default_policy": "deny",
         "tokens": {
-            "default": "${consul_default_token}"
+            "default": "${token}",
+            "agent": "${token}"
         }
     },
     "datacenter": "${datacenter}",
@@ -22,6 +23,9 @@
             "ca_file": "/etc/consul.d/ca.pem",
             "verify_outgoing": false
         }
+    },
+    "ports": {
+        "grpc": 8502
     },
     "service": {
         "name": "nginx",
