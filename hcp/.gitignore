@@ -1,5 +1,0 @@
-consul-client.pem
-consul/values.yaml
-terraform.tfvars
-.terraform/
-.terraform.tfstate*

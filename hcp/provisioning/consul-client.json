@@ -1,0 +1,41 @@
+{
+    "acl": {
+        "enabled": true,
+        "down_policy": "async-cache",
+        "default_policy": "deny",
+        "tokens": {
+            "default": "${token}",
+            "agent": "${token}"
+        }
+    },
+    "datacenter": "${datacenter}",
+    "retry_join": ["${retry_join}"],
+    "encrypt": "",
+    "encrypt_verify_incoming": false,
+    "encrypt_verify_outgoing": false,
+    "server": false,
+    "log_level": "INFO",
+    "ui_config": {
+        "enabled": true
+    },
+    "tls": {
+        "defaults": {
+            "ca_file": "/etc/consul.d/ca.pem",
+            "verify_outgoing": false
+        }
+    },
+    "ports": {
+        "grpc": 8502
+    },
+    "service": {
+        "name": "nginx",
+        "port": 80,
+        "check": {
+            "id": "nginx",
+            "name": "NGINX TCP on port 80",
+            "tcp": "localhost:80",
+            "interval": "10s",
+            "timeout": "1s"
+        }
+    }
+}
