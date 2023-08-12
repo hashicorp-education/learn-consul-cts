@@ -28,8 +28,9 @@ task {
   module    = "./cts-jumphost-module"
   providers = ["aws"]
 
-  module_input "services" {
+  condition "services" {
     regexp = "nginx.*"
+    use_as_module_input = true
     cts_user_defined_meta = {
       vpc_id = "${vpc_id}"
       region = "${region}"
