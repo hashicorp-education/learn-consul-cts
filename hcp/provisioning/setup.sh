@@ -31,6 +31,8 @@ setup_consul() {
   jq '.bind_addr = "{{ GetPrivateInterfaces | include \"network\" \"'${vpc_cidr}'\" | attr \"address\" }}"' client.temp.4 >/etc/consul.d/client.json
   rm /home/ubuntu/client.temp.*
   [[ ! -z "${cts_config}" ]] && echo "${cts_config}" | base64 -d >cts/cts-config.hcl
+  sed -i 's/notify/simple/g' /usr/lib/systemd/system/consul.service
+  systemctl daemon-reload
   systemctl enable consul.service
   systemctl start consul.service
 }

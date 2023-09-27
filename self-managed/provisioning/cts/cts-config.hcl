@@ -35,6 +35,7 @@ task {
       vpc_id    = "${vpc_id}"
       region    = "${region}"
       subnet_id = "${subnet_id}"
+      key_name = "${key_name}"
     }
   }
 }

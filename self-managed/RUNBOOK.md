@@ -9,9 +9,15 @@ Run the deployment.
 `terraform init`
 `terraform apply`
 
-Log on to the CTS instance.
+Save the address of the CTS instance into an environment variable.
 
-`ssh -i ./consul-client.pem ubuntu@XX.XX.XX.XX`
+```
+export CTSINSTANCEIP=$(terraform output -raw cts_instance_ip)
+```
+
+Log on to the CTS instance and start CTS.
+
+`ssh -i ./consul-client.pem ubuntu@$CTSINSTANCEIP`
 `cd cts`
 `consul-terraform-sync start -config-file=cts-config.hcl`
 
@@ -40,7 +46,7 @@ $ aws --region eu-north-1 ec2 describe-security-groups --filters "Name=tag-key,V
     "IpProtocol": "tcp",
     "IpRanges": [
       {
-        "CidrIp": "10.0.1.180/32"
+        "CidrIp": "<<APPLICATION INSTANCE IP>>"
       }
     ],
     "Ipv6Ranges": [],
@@ -49,6 +55,18 @@ $ aws --region eu-north-1 ec2 describe-security-groups --filters "Name=tag-key,V
     "UserIdGroupPairs": []
   }
 ]
+```
+
+Save the address of the jumphost into an environment variable.
+
+```
+export JUMPHOSTIP=$(aws --region eu-north-1  ec2 describe-instances --filters "Name=tag-key,Values=CtsJumphostModule" | jq -r '.Reservations[].Instances[].PublicIpAddress')
+```
+
+Log on to the CTS jumphost instance and access the Application instance to test the firewall rule.
+
+```
+ssh -i ./jumphost-key.pem -J ubuntu@$JUMPHOSTIP 
 ```
 
 Modify the `count` to `2` in line 49 on the `self-managed/application-instance.tf` file and rerun `terraform apply`. 
@@ -118,11 +136,14 @@ $ aws --region eu-north-1 ec2 terminate-instances --instance-ids $(aws --region 
 }
 ```
 
-Delete the jumphost instance's key-pair. Notice the lack of output means success:
+Delete the jumphost instance's key-pair.
 
 ```
 $ aws --region eu-north-1 ec2 delete-key-pair --key-pair-id $(aws --region eu-north-1 ec2 describe-key-pairs --filters "Name=tag-key,Values=CtsJumphostModule" | jq -r '.KeyPairs[].KeyPairId')
-
+{
+    "Return": true,
+    "KeyPairId": "key-XXXXXXXXXXXXXXXX"
+}
 ```
 
 Delete the jumphost instance's security group. Notice the lack of output means success:

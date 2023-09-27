@@ -111,7 +111,7 @@ resource "aws_instance" "jumphost" {
   vpc_security_group_ids = [
     aws_security_group.secgrp-jumphost.id
   ]
-  key_name = aws_key_pair.jumphost-key.key_name
+  key_name = local.key_name
 
   tags = {
     Name       = "jumphost-${count.index}"

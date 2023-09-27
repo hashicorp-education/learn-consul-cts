@@ -1,3 +1,9 @@
+variable "application_instances_amount" {
+  type = number
+  description = "The amount of application instances to deploy"
+  default = 1
+}
+
 variable "cluster_id" {
   type        = string
   description = "The name of your HCP Consul cluster"

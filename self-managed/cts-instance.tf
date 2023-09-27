@@ -145,6 +145,7 @@ resource "aws_instance" "cts" {
         vpc_id    = module.vpc.vpc_id,
         region    = var.aws_region,
         subnet_id = module.vpc.public_subnets[0],
+        key_name = aws_key_pair.key-instances.key_name,
       })),
       vpc_cidr    = module.vpc.vpc_cidr_block,
     })),

@@ -46,7 +46,7 @@ resource "aws_iam_instance_profile" "profile_describe_instances" {
 
 // application instance
 resource "aws_instance" "application" {
-  count                       = 1
+  count                       = var.application_instances_amount
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t3.micro"
   iam_instance_profile        = aws_iam_instance_profile.profile_describe_instances.name
