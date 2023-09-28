@@ -79,28 +79,6 @@ resource "aws_security_group_rule" "egress-jumphost-rules" {
   security_group_id = aws_security_group.secgrp-jumphost.id
  }
 
-// SSH RSA key
-resource "tls_private_key" "pk" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-// Key pair
-resource "aws_key_pair" "jumphost-key" {
-  key_name   = "jumphost-key"
-  public_key = tls_private_key.pk.public_key_openssh
-  tags = {
-    Name       = "kp-jumphost"
-    CtsJumphostModule = "true"
-  }
-}
-
-resource "local_file" "jumphost-key" {
-  content         = tls_private_key.pk.private_key_pem
-  filename        = "./jumphost-key.pem"
-  file_permission = "0400"
-}
-
 // Consul client instance
 resource "aws_instance" "jumphost" {
   count                       = 1

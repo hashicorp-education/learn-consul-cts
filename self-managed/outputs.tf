@@ -9,6 +9,11 @@ output "cts_instance_ip" {
   description = "Public IP of the CTS Instance"
 }
 
+output "app_instance_ips" {
+  value = aws_instance.application.*.private_ip
+  description = "Private IPs of the App Instances"
+}
+
 output "next_steps" {
   value = <<-NEXTSTEPS
   You can now access your CTS instance by running:

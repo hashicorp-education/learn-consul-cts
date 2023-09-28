@@ -15,7 +15,57 @@ Save the address of the CTS instance into an environment variable.
 export CTSINSTANCEIP=$(terraform output -raw cts_instance_ip)
 ```
 
-Log on to the CTS instance and start CTS.
+Log on to the CTS instance and inspect the CTS configuration file.
+
+`ssh -i ./consul-client.pem ubuntu@$CTSINSTANCEIP`
+
+`less cts/cts-config.hcl`
+
+``` filename=cts-config.hcl
+consul {
+  address = "localhost:8500"
+  token   = "xxxx-xxxx-xxxx-xxxx-xxxx"
+}
+
+driver "terraform" {
+  log         = false
+  persist_log = true
+  path        = ""
+
+  backend "consul" {
+    gzip = true
+  }
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.43"
+    }
+  }
+}
+
+terraform_provider "aws" {
+}
+
+task {
+  name      = "jumphost-ssh"
+  module    = "./cts-jumphost-module"
+  providers = ["aws"]
+
+  condition "services" {
+    regexp = "^nginx.*"
+    use_as_module_input = true
+    cts_user_defined_meta = {
+      vpc_id    = "vpc-0634f8556e348ba1f"
+      region    = "eu-north-1"
+      subnet_id = "subnet-0e414220b27c857b8"
+      key_name = "learn-cts-consul-client"
+    }
+  }
+}
+```
+
+Start consul-terraform-sync on the CTS instance.
 
 `ssh -i ./consul-client.pem ubuntu@$CTSINSTANCEIP`
 `cd cts`
@@ -27,7 +77,7 @@ Log on to the CTS instance and start CTS.
 2023-08-09T14:43:25.016Z [INFO]  ctrl: start task monitoring
 ```
 
-This output means that the CTS deployment has ran successfully.
+This output means that the CTS deployment has ran successfully. Leave the CTS process running and open another terminal session on your local machine.
 
 Verify that the EC2 jumphost instance with the related tag is currently running:
 
@@ -63,13 +113,21 @@ Save the address of the jumphost into an environment variable.
 export JUMPHOSTIP=$(aws --region eu-north-1  ec2 describe-instances --filters "Name=tag-key,Values=CtsJumphostModule" | jq -r '.Reservations[].Instances[].PublicIpAddress')
 ```
 
-Log on to the CTS jumphost instance and access the Application instance to test the firewall rule.
+Save the address of the first application instance into an environment variable.
 
 ```
-ssh -i ./jumphost-key.pem -J ubuntu@$JUMPHOSTIP 
+export APPINSTANCE0IP=$(terraform output -json app_instance_ips | jq -r '.[0]')
 ```
 
-Modify the `count` to `2` in line 49 on the `self-managed/application-instance.tf` file and rerun `terraform apply`. 
+Log on to the first application instance via the jumphost instance.
+
+```
+ssh -i ./consul-client.pem -J ubuntu@$JUMPHOSTIP ubuntu@$APPINSTANCE0IP
+```
+
+### Scale the application instances up
+
+Modify the `application_instances_amount` variable in terraform.tfvars to `2` and rerun `terraform apply`. 
 
 ```
 Plan: 1 to add, 0 to change, 0 to destroy.
@@ -115,6 +173,20 @@ $ aws --region eu-north-1 ec2 describe-security-groups --filters "Name=tag-key,V
 ]
 ```
 
+Save the address of the second application instance into an environment variable.
+
+```
+export APPINSTANCE1IP=$(terraform output -json app_instance_ips | jq -r '.[1]')
+```
+
+Log on to the second application instance via the jumphost instance.
+
+```
+ssh -i ./consul-client.pem -J ubuntu@$JUMPHOSTIP ubuntu@$APPINSTANCE1IP
+```
+
+
+# Clean up
 Clean-up the infrastructure deployed from the CTS module. Stop the jumphost instance:
 
 ```
