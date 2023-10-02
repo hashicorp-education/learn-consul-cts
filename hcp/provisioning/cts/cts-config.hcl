@@ -3,6 +3,18 @@ consul {
   token   = "${cts_token}"
 }
 
+log_level   = "INFO"
+working_dir = "sync-tasks"
+port        = 8558
+
+syslog {}
+
+buffer_period {
+  enabled = true
+  min     = "5s"
+  max     = "20s"
+}
+
 driver "terraform" {
   log         = false
   persist_log = true
