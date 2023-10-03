@@ -15,6 +15,3 @@ provider "aws" {
   region = var.aws_region
 }
 
-#locals {
-#  cluster_id = "${var.cluster_id}-${random_string.cluster_id.id}"
-#}

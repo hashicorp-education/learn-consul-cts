@@ -28,6 +28,7 @@ provider "aws" {
 }
 
 provider "hcp" {
+  #project_id = "<Speficy the UUID of a project if needed>"
 }
 
 provider "consul" {

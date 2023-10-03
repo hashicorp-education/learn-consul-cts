@@ -73,4 +73,6 @@ resource "aws_instance" "application" {
     Name                   = "application-${count.index}"
     learn-consul-cts-intro = "join"
   }
+
+  depends_on = [ aws_instance.cts ]
 }

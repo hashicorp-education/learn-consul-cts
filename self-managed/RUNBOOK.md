@@ -208,16 +208,6 @@ $ aws --region eu-north-1 ec2 terminate-instances --instance-ids $(aws --region 
 }
 ```
 
-Delete the jumphost instance's key-pair.
-
-```
-$ aws --region eu-north-1 ec2 delete-key-pair --key-pair-id $(aws --region eu-north-1 ec2 describe-key-pairs --filters "Name=tag-key,Values=CtsJumphostModule" | jq -r '.KeyPairs[].KeyPairId')
-{
-    "Return": true,
-    "KeyPairId": "key-XXXXXXXXXXXXXXXX"
-}
-```
-
 Delete the jumphost instance's security group. Notice the lack of output means success:
 
 ```
