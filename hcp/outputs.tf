@@ -1,3 +1,8 @@
+output "aws_region" {
+  description = "AWS Region"
+  value = var.aws_region
+}
+
 output "consul_token" {
   sensitive = true
   value = hcp_consul_cluster.main.consul_root_token_secret_id
@@ -7,6 +12,11 @@ output "consul_token" {
 output "cts_instance_ip" {
   value = aws_instance.cts[0].public_ip
   description = "Public IP of the CTS Instance"
+}
+
+output "app_instance_ips" {
+  value = aws_instance.application.*.private_ip
+  description = "Private IPs of the App Instances"
 }
 
 output "next_steps" {

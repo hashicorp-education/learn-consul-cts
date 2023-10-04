@@ -24,6 +24,7 @@ locals {
   region    = distinct([for _, service in var.services : lookup(service.cts_user_defined_meta, "region", "")])[0]
   vpc_id    = distinct([for _, service in var.services : lookup(service.cts_user_defined_meta, "vpc_id", "")])[0]
   subnet_id = distinct([for _, service in var.services : lookup(service.cts_user_defined_meta, "subnet_id", "")])[0]
+  key_name  = distinct([for _, service in var.services : lookup(service.cts_user_defined_meta, "key_name", "")])[0]
 }
 
 provider "aws" {

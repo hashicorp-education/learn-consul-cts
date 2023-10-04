@@ -1,3 +1,8 @@
+output "aws_region" {
+  description = "AWS Region"
+  value = var.aws_region
+}
+
 output "consul_token" {
   sensitive = true
   value = random_uuid.consul_bootstrap_token.result
