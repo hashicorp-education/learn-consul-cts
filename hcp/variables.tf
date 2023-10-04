@@ -25,13 +25,13 @@ variable "aws_region" {
 variable "consul_version" {
   type        = string
   description = "The HCP Consul version"
-  default     = "v1.15.2"
+  default     = "v1.16.2"
 }
 
 variable "cts_version" {
   type        = string
   description = "CTS version to install"
-  default     = "v0.6.0"
+  default     = "v0.7.0"
 }
 
 # HCP Variables

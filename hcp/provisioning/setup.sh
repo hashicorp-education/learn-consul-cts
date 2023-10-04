@@ -37,30 +37,10 @@ setup_consul() {
   systemctl start consul.service
 }
 
-setup_nginx_service_consul() {
-  cat <<EOF >/etc/consul.d/service-nginx.json
-{
-  "service": {
-      "name": "nginx",
-      "port": 80,
-      "check": {
-          "id": "nginx",
-          "name": "NGINX TCP on port 80",
-          "tcp": "localhost:80",
-          "interval": "10s",
-          "timeout": "1s"
-      }
-  }
-}
-EOF
-  chown -R consul:consul /etc/consul.d/*
-}
-
 cd /home/ubuntu/
 
 setup_networking
 setup_deps
 setup_consul
-[[ -z "${cts_config}" ]] && setup_nginx_service_consul # set up example nginx if instance is not the CTS one
 
 echo "done"
