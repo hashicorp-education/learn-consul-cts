@@ -39,10 +39,6 @@ task {
 
   module_input "services" {
     regexp = "nginx.*"
-    cts_user_defined_meta = {
-      vpc_id = "${vpc_id}"
-      region = "${region}"
-      subnet_id = "${subnet_id}"
     }
   }
 }
@@ -91,11 +87,6 @@ task {
 
   module_input "services" {
     regexp = "nginx.*"
-    cts_user_defined_meta = {
-      vpc_id = "${vpc_id}"
-      region = "${region}"
-      subnet_id = "${subnet_id}"
-    }
   }
 }
 ```

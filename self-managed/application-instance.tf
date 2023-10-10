@@ -16,7 +16,7 @@ resource "aws_iam_policy" "policy_describe_instances" {
 }
 
 resource "aws_iam_role" "role_describe_instances" {
-  name = "role_describe_instances"
+  name = "role_describe_instances-${local.cluster_id}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -34,13 +34,13 @@ resource "aws_iam_role" "role_describe_instances" {
 }
 
 resource "aws_iam_policy_attachment" "policy_describe_instances" {
-  name       = "policy_describe_instances"
+  name       = "policy_describe_instances-${local.cluster_id}"
   roles      = [aws_iam_role.role_describe_instances.name]
   policy_arn = aws_iam_policy.policy_describe_instances.arn
 }
 
 resource "aws_iam_instance_profile" "profile_describe_instances" {
-  name = "profile_describe_instances"
+  name = "profile_describe_instances-${local.cluster_id}"
   role = aws_iam_role.role_describe_instances.name
 }
 
@@ -52,12 +52,14 @@ resource "aws_instance" "application" {
   iam_instance_profile        = aws_iam_instance_profile.profile_describe_instances.name
   associate_public_ip_address = true
   subnet_id                   = module.vpc.private_subnets[0]
-  vpc_security_group_ids      = [aws_security_group.allow_ssh.id]
+  vpc_security_group_ids      = [aws_security_group.secgrp_default.id]
   key_name                    = aws_key_pair.key-instances.key_name
 
   user_data = templatefile("${path.module}/provisioning/user_data.sh", {
     setup = base64gzip(templatefile("${path.module}/provisioning/setup.sh", {
+      hostname = "nginx-${count.index}",
       cts_config = "",
+      cts_variables = "",
       consul_ca = base64encode(tls_self_signed_cert.consul_ca_cert.cert_pem),
       consul_config = base64encode(templatefile("${path.module}/provisioning/consul-client.json", {
         datacenter           = var.datacenter,

@@ -19,7 +19,7 @@ variable "datacenter" {
 variable "aws_region" {
   type        = string
   description = "The AWS region to create resources in"
-  default     = "us-west-2"
+  default     = "us-east-2"
 }
 
 variable "consul_version" {
@@ -39,7 +39,7 @@ variable "cts_version" {
 variable "hvn_region" {
   type        = string
   description = "The HCP region to create resources in"
-  default     = "us-west-2"
+  default     = "us-east-2"
 }
 
 variable "hvn_id" {

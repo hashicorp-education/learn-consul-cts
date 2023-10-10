@@ -5,25 +5,26 @@ module "vpc" {
   name             = "${local.cluster_id}-vpc"
   cidr             = "10.0.0.0/16"
   azs              = data.aws_availability_zones.available.names
-  private_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
-  public_subnets   = ["10.0.4.0/24", "10.0.5.0/24"]
-  database_subnets = ["10.0.7.0/24", "10.0.8.0/24"]
+  private_subnets  = []
+  public_subnets   = ["10.0.4.0/24"]
+  #private_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
+  #public_subnets   = ["10.0.4.0/24", "10.0.5.0/24"]
+  #database_subnets = ["10.0.7.0/24", "10.0.8.0/24"]
 
   manage_default_route_table = true
   default_route_table_tags   = { DefaultRouteTable = true }
 
-  create_database_subnet_group           = true
-  create_database_subnet_route_table     = true
-  create_database_internet_gateway_route = true
+  create_database_subnet_group           = false
 
-  enable_nat_gateway   = true
-  single_nat_gateway   = true
+#  enable_nat_gateway   = true
+#  single_nat_gateway   = true
   enable_dns_hostnames = true
   enable_dns_support   = true
+#  map_public_ip_on_launch = true
 }
 
-resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh"
+resource "aws_security_group" "secgrp_default" {
+  name        = "secgrp_default"
   description = "Allow SSH inbound traffic"
   vpc_id      = module.vpc.vpc_id
 
@@ -37,11 +38,11 @@ resource "aws_security_group" "allow_ssh" {
   }
 
   ingress {
-    description = "Allow traffic between public and private subnets in the supernet"
-    from_port   = 0
-    to_port     = 0
-    protocol    = -1
-    cidr_blocks = ["10.0.0.0/8"]
+    description = "Allow traffic between the HVN and the VPC"
+    from_port = 0
+    to_port = 0
+    protocol = -1
+    cidr_blocks = [ var.hvn_cidr_block ]
   }
 
   egress {
@@ -54,7 +55,7 @@ resource "aws_security_group" "allow_ssh" {
   }
 
   tags = {
-    Name = "allow_ssh"
+    Name = "secgrp_default"
   }
 }
 
@@ -85,12 +86,12 @@ resource "tls_private_key" "pk" {
 
 // Key pair
 resource "aws_key_pair" "key-instances" {
-  key_name   = "${var.cluster_id}-consul-client"
+  key_name   = "${var.cluster_id}-tls-key"
   public_key = tls_private_key.pk.public_key_openssh
 }
 
 resource "local_file" "key_instances_key" {
   content         = tls_private_key.pk.private_key_pem
-  filename        = "./consul-client.pem"
+  filename        = "./tls-key.pem"
   file_permission = "0400"
 }

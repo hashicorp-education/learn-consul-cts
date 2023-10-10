@@ -55,12 +55,7 @@ task {
   condition "services" {
     regexp = "^nginx.*"
     use_as_module_input = true
-    cts_user_defined_meta = {
-      vpc_id    = "vpc-0634f8556e348ba1f"
-      region    = "eu-north-1"
-      subnet_id = "subnet-0e414220b27c857b8"
-      key_name = "learn-cts-consul-client"
-    }
+    cts_user_defined_meta = {}
   }
 }
 ```

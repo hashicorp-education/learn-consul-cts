@@ -1,4 +1,4 @@
-# learn-consul-cts-intro
+# learn-consul-cts
 
 This is a companion repository to the [Network Infrastructure Automation with Consul-Terraform-Sync Intro tutorial](https://developer.hashicorp.com/consul/tutorials/network-infrastructure-automation/consul-terraform-sync-intro), containing sample configuration to:
 

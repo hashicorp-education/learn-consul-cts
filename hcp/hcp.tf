@@ -14,7 +14,7 @@ module "aws_hcp_consul" {
   vpc_id             = module.vpc.vpc_id
   subnet_ids         = concat(module.vpc.public_subnets, module.vpc.database_subnets)
   route_table_ids    = concat(module.vpc.public_route_table_ids, module.vpc.database_route_table_ids)
-  security_group_ids = [aws_security_group.allow_ssh.id]
+  security_group_ids = [aws_security_group.secgrp_default.id]
 }
 
 resource "random_string" "cluster_id" {

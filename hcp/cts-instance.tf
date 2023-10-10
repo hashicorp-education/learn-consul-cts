@@ -52,7 +52,7 @@ resource "aws_iam_policy" "policy_manage_instances" {
 }
 
 resource "aws_iam_role" "role_manage_instances" {
-  name = "role_manage_instances"
+  name = "role_manage_instances-${local.cluster_id}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -70,13 +70,13 @@ resource "aws_iam_role" "role_manage_instances" {
 }
 
 resource "aws_iam_policy_attachment" "policy_manage_instances" {
-  name       = "policy_manage_instances"
+  name       = "policy_manage_instances-${local.cluster_id}"
   roles      = [aws_iam_role.role_manage_instances.name]
   policy_arn = aws_iam_policy.policy_manage_instances.arn
 }
 
 resource "aws_iam_instance_profile" "profile_manage_instances" {
-  name = "profile_manage_instances"
+  name = "profile_manage_instances-${local.cluster_id}"
   role = aws_iam_role.role_manage_instances.name
 }
 
@@ -88,11 +88,12 @@ resource "aws_instance" "cts" {
   iam_instance_profile        = aws_iam_instance_profile.profile_manage_instances.name
   associate_public_ip_address = true
   subnet_id                   = module.vpc.public_subnets[0]
-  vpc_security_group_ids = [ aws_security_group.allow_ssh.id ]
+  vpc_security_group_ids = [ aws_security_group.secgrp_default.id ]
   key_name = aws_key_pair.key-instances.key_name
 
   user_data = templatefile("${path.module}/provisioning/user_data.sh", {
     setup = base64gzip(templatefile("${path.module}/provisioning/setup.sh", {
+      hostname = "cts-${count.index}",
       consul_ca = hcp_consul_cluster.main.consul_ca_file,
       consul_config = hcp_consul_cluster.main.consul_config_file,
       consul_acl_token = hcp_consul_cluster.main.consul_root_token_secret_id,
@@ -100,11 +101,14 @@ resource "aws_instance" "cts" {
       cts_version = var.cts_version,
       cts_config = base64encode(templatefile("${path.module}/provisioning/cts/cts-config.hcl", {
         cts_token = hcp_consul_cluster.main.consul_root_token_secret_id,
-        vpc_id    = module.vpc.vpc_id,
-        region    = var.aws_region,
-        subnet_id = module.vpc.public_subnets[0],
-        key_name = aws_key_pair.key-instances.key_name,
       })),
+      cts_variables = base64encode(<<-EOF
+        vpc_id = "${module.vpc.vpc_id}"
+        region = "${var.aws_region}"
+        subnet_id = "${module.vpc.public_subnets[0]}"
+        key_name = "${aws_key_pair.key-instances.key_name}"
+        EOF
+      )
       vpc_cidr    = module.vpc.vpc_cidr_block,
     })),
   })

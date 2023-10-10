@@ -20,6 +20,26 @@ setup_networking() {
   mkdir -p /opt/cni/bin
   tar -C /opt/cni/bin -xzf cni-plugins.tgz
   rm /home/ubuntu/cni-plugins.tgz
+  hostnamectl set-hostname "${hostname}"
+}
+
+setup_nginx_service() {
+  cat >/etc/consul.d/service-nginx.json <<EOF
+{
+    "service": {
+        "name": "nginx",
+        "port": 80,
+        "check": {
+            "id": "nginx",
+            "name": "NGINX TCP on port 80",
+            "tcp": "localhost:80",
+            "interval": "10s",
+            "timeout": "1s"
+        }
+    }
+}
+EOF
+  chown consul:consul /etc/consul.d/service-nginx.json
 }
 
 setup_consul() {
@@ -31,6 +51,7 @@ setup_consul() {
   jq '.bind_addr = "{{ GetPrivateInterfaces | include \"network\" \"'${vpc_cidr}'\" | attr \"address\" }}"' client.temp.4 >/etc/consul.d/client.json
   rm /home/ubuntu/client.temp.*
   [[ ! -z "${cts_config}" ]] && echo "${cts_config}" | base64 -d >cts/cts-config.hcl
+  [[ ! -z "${cts_variables}" ]] && echo "${cts_variables}" | base64 -d >cts/cts-jumphost-module.tfvars
   sed -i 's/notify/simple/g' /usr/lib/systemd/system/consul.service
   systemctl daemon-reload
   systemctl enable consul.service
@@ -41,6 +62,7 @@ cd /home/ubuntu/
 
 setup_networking
 setup_deps
+[[ -z "${cts_config}" ]] && setup_nginx_service
 setup_consul
 
 echo "done"

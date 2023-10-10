@@ -2,7 +2,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "3.11.0"
 
-  name             = "learn-cts-vpc"
+  name             = "${local.cluster_id}-vpc"
   cidr             = "10.0.0.0/16"
   azs              = data.aws_availability_zones.available.names
   private_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
@@ -22,8 +22,8 @@ module "vpc" {
   enable_dns_support   = true
 }
 
-resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh"
+resource "aws_security_group" "secgrp_default" {
+  name        = "secgrp_default"
   description = "Allow SSH inbound traffic"
   vpc_id      = module.vpc.vpc_id
 
@@ -54,7 +54,7 @@ resource "aws_security_group" "allow_ssh" {
   }
 
   tags = {
-    Name = "allow_ssh"
+    Name = "secgrp_default"
   }
 }
 
@@ -85,12 +85,12 @@ resource "tls_private_key" "pk" {
 
 // Key pair
 resource "aws_key_pair" "key-instances" {
-  key_name   = "${var.cluster_id}-consul-client"
+  key_name   = "${var.cluster_id}-tls-key"
   public_key = tls_private_key.pk.public_key_openssh
 }
 
 resource "local_file" "key_instances_key" {
   content         = tls_private_key.pk.private_key_pem
-  filename        = "./consul-client.pem"
+  filename        = "./tls-key.pem"
   file_permission = "0400"
 }

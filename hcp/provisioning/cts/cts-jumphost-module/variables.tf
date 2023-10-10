@@ -66,3 +66,23 @@ variable "address_group_tags" {
   type        = list(string)
   default     = []
 }
+
+variable "region" {
+  description = "Region where to deploy the jumphost instance"
+  type = string
+}
+
+variable "vpc_id" {
+  description = "VPC ID where to deploy the jumphost instance"
+  type = string
+}
+
+variable "subnet_id" {
+  description = "Subnet ID where to deploy the jumphost instance"
+  type = string
+}
+
+variable "key_name" {
+  description = "Identity Key to deploy to the jumphost instance for remote login"
+  type = string
+}
