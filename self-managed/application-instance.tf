@@ -55,17 +55,21 @@ resource "aws_instance" "application" {
   vpc_security_group_ids      = [aws_security_group.secgrp_default.id]
   key_name                    = aws_key_pair.key-instances.key_name
 
-  user_data = templatefile("${path.module}/provisioning/user_data.sh", {
-    setup = base64gzip(templatefile("${path.module}/provisioning/setup.sh", {
+  user_data = templatefile("${path.module}/instance-scripts/user_data.sh", {
+    setup = base64gzip(templatefile("${path.module}/instance-scripts/setup.sh", {
       hostname = "nginx-${count.index}",
+      cts_version = "",
       cts_config = "",
+      cts_jumphost_module_zip = "",
+      cts_policy = "",
       cts_variables = "",
       consul_ca = base64encode(tls_self_signed_cert.consul_ca_cert.cert_pem),
-      consul_config = base64encode(templatefile("${path.module}/provisioning/consul-client.json", {
+      consul_config = base64encode(templatefile("${path.module}/provisioning/templates/consul-client.json", {
         datacenter           = var.datacenter,
         retry_join           = "provider=aws tag_key=learn-consul-cts-intro tag_value=join",
-        token = random_uuid.consul_bootstrap_token.result
+        token = random_uuid.consul_bootstrap_token.result,
       })),
+      consul_acl_token = random_uuid.consul_bootstrap_token.result,
       consul_version   = var.consul_version,
       vpc_cidr = module.vpc.vpc_cidr_block,
     })),

@@ -23,32 +23,10 @@ setup_networking() {
   hostnamectl set-hostname "${hostname}"
 }
 
-setup_nginx_service() {
-  cat >/etc/consul.d/service-nginx.json <<EOF
-{
-    "service": {
-        "name": "nginx",
-        "port": 80,
-        "check": {
-            "id": "nginx",
-            "name": "NGINX TCP on port 80",
-            "tcp": "localhost:80",
-            "interval": "10s",
-            "timeout": "1s"
-        }
-    }
-}
-EOF
-  chown consul:consul /etc/consul.d/service-nginx.json
-}
-
 setup_consul() {
   echo "${consul_ca}" | base64 -d >/etc/consul.d/ca.pem
   echo "${consul_config}" | base64 -d >client.temp.1
-  jq '.tls.defaults.ca_file = "/etc/consul.d/ca.pem"' client.temp.1 >client.temp.2
-  jq '.acl.tokens.agent = "'${consul_acl_token}'"' client.temp.2 > client.temp.3
-  jq '.acl.tokens.default = "'${consul_acl_token}'"' client.temp.3 > client.temp.4
-  jq '.bind_addr = "{{ GetPrivateInterfaces | include \"network\" \"'${vpc_cidr}'\" | attr \"address\" }}"' client.temp.4 >/etc/consul.d/client.json
+  jq '.bind_addr = "{{ GetPrivateInterfaces | include \"network\" \"'${vpc_cidr}'\" | attr \"address\" }}"' client.temp.1 >/etc/consul.d/client.json
   rm /home/ubuntu/client.temp.*
   sed -i 's/notify/simple/g' /usr/lib/systemd/system/consul.service
   systemctl daemon-reload
@@ -101,7 +79,6 @@ cd /home/ubuntu/
 
 setup_networking
 setup_deps
-[[ -z "${cts_config}" ]] && setup_nginx_service
 setup_consul
 [[ ! -z "${cts_config}" ]] && setup_cts
 

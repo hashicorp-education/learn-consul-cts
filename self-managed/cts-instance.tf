@@ -130,20 +130,13 @@ resource "aws_instance" "cts" {
   vpc_security_group_ids = [ aws_security_group.secgrp_default.id ]
   key_name = aws_key_pair.key-instances.key_name
 
-  user_data = templatefile("${path.module}/provisioning/user_data.sh", {
-    setup = base64gzip(templatefile("${path.module}/provisioning/setup.sh", {
+  user_data = templatefile("${path.module}/instance-scripts/user_data.sh", {
+    setup = base64gzip(templatefile("${path.module}/instance-scripts/setup.sh", {
       hostname = "cts-${count.index}",
-      consul_ca = base64encode(tls_self_signed_cert.consul_ca_cert.cert_pem),
-      consul_config = base64encode(templatefile("${path.module}/provisioning/consul-server.json", {
-        datacenter = var.datacenter,
-        token = random_uuid.consul_bootstrap_token.result,
-      })),
-      consul_acl_token = random_uuid.consul_bootstrap_token.result,
-      consul_version   = var.consul_version,
       cts_version = var.cts_version,
-      cts_config = base64encode(templatefile("${path.module}/provisioning/cts/cts-config.hcl", {
-        cts_token = random_uuid.consul_bootstrap_token.result,
-      })),
+      cts_config = filebase64("${path.module}/provisioning/templates/cts-config.hcl"),
+      cts_jumphost_module_zip = filebase64("${path.module}/provisioning/cts-jumphost-module.zip"),
+      cts_policy = filebase64("${path.module}/provisioning/templates/cts-policy.hcl"),
       cts_variables = base64encode(<<-EOF
         vpc_id = "${module.vpc.vpc_id}"
         region = "${var.aws_region}"
@@ -151,22 +144,16 @@ resource "aws_instance" "cts" {
         key_name = "${aws_key_pair.key-instances.key_name}"
         EOF
       )
+      consul_ca = base64encode(tls_self_signed_cert.consul_ca_cert.cert_pem),
+      consul_config = base64encode(templatefile("${path.module}/provisioning/templates/consul-server.json", {
+        datacenter = var.datacenter,
+        token = random_uuid.consul_bootstrap_token.result,
+      })),
+      consul_acl_token = random_uuid.consul_bootstrap_token.result,
+      consul_version   = var.consul_version,
       vpc_cidr    = module.vpc.vpc_cidr_block,
     })),
   })
-
-  provisioner "file" {
-    source      = "provisioning/cts"
-    destination = "/home/ubuntu"
-
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      host        = self.public_ip
-      private_key = local_file.key_instances_key.content
-    }
-
-  }
 
   tags = {
     Name = "cts-${count.index}"
