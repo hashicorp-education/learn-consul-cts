@@ -55,11 +55,14 @@ resource "aws_instance" "application" {
   vpc_security_group_ids      = [aws_security_group.secgrp_default.id]
   key_name                    = aws_key_pair.key-instances.key_name
 
-  user_data = templatefile("${path.module}/provisioning/user_data.sh", {
-    setup = base64gzip(templatefile("${path.module}/provisioning/setup.sh", {
+  user_data = templatefile("${path.module}/instance-scripts/user_data.sh", {
+    setup = base64gzip(templatefile("${path.module}/instance-scripts/setup.sh", {
       hostname = "nginx-${count.index}",
       cts_config = "",
       cts_variables = "",
+      cts_version = "",
+      cts_jumphost_module_zip = ""
+      cts_policy = "",
       consul_ca = hcp_consul_cluster.main.consul_ca_file,
       consul_config = hcp_consul_cluster.main.consul_config_file,
       consul_acl_token = hcp_consul_cluster.main.consul_root_token_secret_id,

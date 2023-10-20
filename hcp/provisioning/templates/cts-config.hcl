@@ -1,24 +1,25 @@
 consul {
   address = "localhost:8500"
-  token   = "${cts_token}"
+  token   = ""
 }
 
 log_level   = "INFO"
-working_dir = "sync-tasks"
+working_dir = "/opt/consul-nia/sync-tasks"
 port        = 8558
+id          = "cts-0"
 
 syslog {}
 
 buffer_period {
   enabled = true
-  min     = "5s"
-  max     = "20s"
+  min     = "1m"
+  max     = "3m"
 }
 
 driver "terraform" {
   log         = false
   persist_log = true
-  path        = ""
+  path        = "/opt/consul-nia/"
 
   backend "consul" {
     gzip = true
@@ -37,9 +38,9 @@ terraform_provider "aws" {
 
 task {
   name      = "jumphost-ssh"
-  module    = "./cts-jumphost-module"
+  module    = "/opt/consul-nia/cts-jumphost-module"
   providers = ["aws"]
-  variable_files = ["cts-jumphost-module.tfvars"]
+  variable_files = ["/opt/consul-nia/cts-jumphost-module.tfvars"]
 
   condition "services" {
     regexp = "^nginx.*"

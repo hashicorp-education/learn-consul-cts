@@ -50,12 +50,51 @@ setup_consul() {
   jq '.acl.tokens.default = "'${consul_acl_token}'"' client.temp.3 > client.temp.4
   jq '.bind_addr = "{{ GetPrivateInterfaces | include \"network\" \"'${vpc_cidr}'\" | attr \"address\" }}"' client.temp.4 >/etc/consul.d/client.json
   rm /home/ubuntu/client.temp.*
-  [[ ! -z "${cts_config}" ]] && echo "${cts_config}" | base64 -d >cts/cts-config.hcl
-  [[ ! -z "${cts_variables}" ]] && echo "${cts_variables}" | base64 -d >cts/cts-jumphost-module.tfvars
   sed -i 's/notify/simple/g' /usr/lib/systemd/system/consul.service
   systemctl daemon-reload
   systemctl enable consul.service
   systemctl start consul.service
+}
+
+setup_cts() {
+  useradd --system --home /etc/consul-nia.d --shell /bin/false consul-nia
+  mkdir -p /opt/consul-nia && mkdir -p /etc/consul-nia.d
+  touch /etc/consul-nia.d/consul-nia.env
+
+  [[ ! -z "${cts_config}" ]] && cat << 'EOF' >/etc/systemd/system/cts.service
+[Unit]
+Description="HashiCorp Consul-Terraform-Sync - A Network Infrastructure Automation solution"
+Documentation=https://www.consul.io/docs/nia
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty=/etc/consul-nia.d/cts-config.hcl
+
+[Service]
+EnvironmentFile=/etc/consul-nia.d/consul-nia.env
+User=consul-nia
+Group=consul-nia
+ExecStart=/usr/bin/consul-terraform-sync start -config-dir=/etc/consul-nia.d/
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+KillSignal=SIGTERM
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+EOF
+  systemctl daemon-reload
+  systemctl enable cts.service
+
+  [[ ! -z "${cts_config}" ]] && echo "${cts_config}" | base64 -d >/etc/consul-nia.d/cts-config.hcl
+  [[ ! -z "${cts_variables}" ]] && echo "${cts_variables}" | base64 -d >/opt/consul-nia/cts-jumphost-module.tfvars
+  [[ ! -z "${cts_policy}" ]] && echo "${cts_policy}" | base64 -d >/opt/consul-nia/cts-policy.hcl
+  [[ ! -z "${cts_jumphost_module_zip}" ]] && echo "${cts_jumphost_module_zip}" | base64 -d >/opt/consul-nia/cts-jumphost-module.zip; unzip /opt/consul-nia/cts-jumphost-module.zip -d /opt/consul-nia/; rm /opt/consul-nia/cts-jumphost-module.zip
+  chown --recursive consul-nia:consul-nia /opt/consul-nia && \
+  chmod -R 0770 /opt/consul-nia && \
+  chown --recursive consul-nia:consul-nia /etc/consul-nia.d && \
+  chmod -R 0770 /etc/consul-nia.d
+  usermod -a -G consul,consul-nia ubuntu
 }
 
 cd /home/ubuntu/
@@ -64,5 +103,6 @@ setup_networking
 setup_deps
 [[ -z "${cts_config}" ]] && setup_nginx_service
 setup_consul
+setup_cts
 
 echo "done"
