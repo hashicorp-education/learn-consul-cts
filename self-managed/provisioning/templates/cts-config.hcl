@@ -10,12 +10,6 @@ id          = "cts-0"
 
 syslog {}
 
-buffer_period {
-  enabled = true
-  min     = "1m"
-  max     = "3m"
-}
-
 driver "terraform" {
   log         = false
   persist_log = true
@@ -38,12 +32,16 @@ terraform_provider "aws" {
 
 task {
   name      = "jumphost-ssh"
+  description = "execute every minute using service information from nginx"
   module    = "/opt/consul-nia/cts-jumphost-module"
   providers = ["aws"]
   variable_files = ["/opt/consul-nia/cts-jumphost-module.tfvars"]
 
-  condition "services" {
-    regexp = "^nginx.*"
-    use_as_module_input = true
+  condition "schedule" {
+    cron = "* * * * *" # every minute
+  }
+
+  module_input "services" {
+    names = "nginx"
   }
 }
