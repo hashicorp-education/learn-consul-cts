@@ -51,7 +51,7 @@ resource "aws_instance" "application" {
   instance_type               = "t3.micro"
   iam_instance_profile        = aws_iam_instance_profile.profile_describe_instances.name
   associate_public_ip_address = true
-  subnet_id                   = module.vpc.private_subnets[0]
+  subnet_id                   = module.vpc.public_subnets[0]
   vpc_security_group_ids      = [aws_security_group.secgrp_default.id]
   key_name                    = aws_key_pair.key-instances.key_name
 
