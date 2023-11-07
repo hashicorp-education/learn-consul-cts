@@ -138,10 +138,8 @@ resource "aws_instance" "cts" {
       cts_jumphost_module_zip = filebase64("${path.module}/provisioning/cts-jumphost-module.zip"),
       cts_policy = filebase64("${path.module}/provisioning/templates/cts-policy.hcl"),
       cts_variables = base64encode(<<-EOF
-        vpc_id = "${module.vpc.vpc_id}"
         region = "${var.aws_region}"
-        subnet_id = "${module.vpc.public_subnets[0]}"
-        key_name = "${aws_key_pair.key-instances.key_name}"
+        security_group_id = "${aws_security_group.secgrp_jumphost.id}"
         EOF
       )
       consul_ca = base64encode(tls_self_signed_cert.consul_ca_cert.cert_pem),
